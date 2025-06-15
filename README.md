@@ -34,6 +34,7 @@ A streaming chatbot API built with OpenAI's GPT-4 Turbo (4.1) model and deployed
    ```
    OPENAI_API_KEY=your_openai_api_key_here
    ```
+Ensure this `.env` file is not committed to version control; it is listed in `.gitignore`.
 
 4. Start the development server:
    ```bash
@@ -105,4 +106,5 @@ data: [DONE]
 
 ## License
 
-MIT
+This project is licensed under the [MIT License](LICENSE).
+

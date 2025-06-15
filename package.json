@@ -1,0 +1,20 @@
+{
+  "name": "mia-ai-vercel",
+  "version": "1.0.0",
+  "description": "Mia AI - Streaming chatbot API for Vercel",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel deploy"
+  },
+  "dependencies": {
+    "openai": "^4.20.0",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "vercel": "^32.5.0"
+  },
+  "engines": {
+    "node": ">=18.x"
+  }
+}

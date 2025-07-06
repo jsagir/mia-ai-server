@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat with Mia - Child Safety Education</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 800px;
+            height: 80vh;
+            min-height: 600px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #ff6b6b, #feca57);
+            padding: 20px;
+            text-align: center;
+            color: white;
+        }
+
+        .chat-header h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .chat-header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .connection-status {
+            padding: 10px 20px;
+            background: #e3f2fd;
+            color: #1976d2;
+            font-size: 14px;
+            text-align: center;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .connection-status.error {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .connection-status.success {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message.mia {
+            justify-content: flex-start;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 12px 18px;
+            border-radius: 18px;
+            font-size: 16px;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+
+        .message.user .message-bubble {
+            background: #007bff;
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        .message.mia .message-bubble {
+            background: #e9ecef;
+            color: #333;
+            border-bottom-left-radius: 5px;
+            border: 2px solid #ff6b6b;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin: 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .avatar.user {
+            background: #007bff;
+            color: white;
+        }
+
+        .avatar.mia {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .chat-input-container {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .age-selector {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-right: 10px;
+        }
+
+        .age-selector select {
+            padding: 8px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        #messageInput {
+            flex: 1;
+            padding: 12px 18px;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        #messageInput:focus {
+            border-color: #ff6b6b;
+        }
+
+        #messageInput:disabled {
+            background-color: #f5f5f5;
+            color: #999;
+        }
+
+        #sendButton {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #ff6b6b, #feca57);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        #sendButton:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+
+        #sendButton:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status-indicator {
+            padding: 10px;
+            text-align: center;
+            font-size: 14px;
+            background: #e3f2fd;
+            color: #1976d2;
+            border-radius: 8px;
+            margin: 10px 20px;
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .typing-indicator {
+            display: none;
+            padding: 10px 20px;
+            font-style: italic;
+            color: #666;
+        }
+
+        .emotional-tag {
+            background: #ffe0e6;
+            color: #d63384;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .setup-instructions {
+            max-width: 600px;
+            margin: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .setup-instructions h2 {
+            color: #ff6b6b;
+            margin-bottom: 15px;
+        }
+
+        .setup-instructions ol {
+            margin-left: 20px;
+        }
+
+        .setup-instructions li {
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        .setup-instructions code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+
+        @media (max-width: 600px) {
+            .chat-container {
+                width: 95%;
+                height: 90vh;
+            }
+            
+            .age-selector {
+                display: none;
+            }
+
+            .setup-instructions {
+                margin: 10px;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Setup Instructions (shown initially) -->
+        <div class="setup-instructions" id="setupInstructions">
+            <h2>🚀 Mia AI Chat Setup Required</h2>
+            <p>To use this chat interface, you need to make your n8n workflow publicly accessible:</p>
+            
+            <h3>Option 1: Using ngrok (Quick Setup)</h3>
+            <ol>
+                <li>Install ngrok: <code>npm install -g ngrok</code></li>
+                <li>Run: <code>ngrok http 5678</code></li>
+                <li>Copy the HTTPS URL (e.g., https://abc123.ngrok.io)</li>
+                <li>Click "Configure Webhook" below and paste the URL</li>
+            </ol>
+
+            <h3>Option 2: Cloud Hosting</h3>
+            <ol>
+                <li>Deploy your n8n instance to a cloud provider</li>
+                <li>Get the public URL of your n8n instance</li>
+                <li>Click "Configure Webhook" below and enter the URL</li>
+            </ol>
+
+            <div style="margin-top: 20px; text-align: center;">
+                <button onclick="showWebhookConfig()" style="padding: 10px 20px; background: #ff6b6b; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">
+                    Configure Webhook URL
+                </button>
+            </div>
+        </div>
+
+        <!-- Webhook Configuration -->
+        <div class="setup-instructions" id="webhookConfig" style="display: none;">
+            <h2>⚙️ Configure Webhook URL</h2>
+            <p>Enter your public n8n webhook URL:</p>
+            
+            <div style="margin: 15px 0;">
+                <input type="text" id="webhookUrlInput" placeholder="https://your-n8n-domain.com/webhook/82f19b4d-3c65-457f-9362-4a7b0b5080bc" style="width: 100%; padding: 10px; border: 2px solid #e9ecef; border-radius: 5px; font-size: 14px;">
+            </div>
+            
+            <div style="text-align: center; margin-top: 15px;">
+                <button onclick="testConnection()" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin-right: 10px;">
+                    Test Connection
+                </button>
+                <button onclick="startChat()" style="padding: 10px 20px; background: #ff6b6b; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">
+                    Start Chatting
+                </button>
+            </div>
+            
+            <div id="connectionTest" style="margin-top: 15px; padding: 10px; border-radius: 5px; display: none;"></div>
+        </div>
+
+        <!-- Chat Interface (hidden initially) -->
+        <div class="chat-container" id="chatContainer" style="display: none;">
+            <div class="chat-header">
+                <h1>🌟 Chat with Mia 🌟</h1>
+                <p>Your caring 10-year-old friend who helps with safety!</p>
+            </div>
+
+            <div class="connection-status" id="connectionStatus">
+                🌐 Connecting to Mia AI System...
+            </div>
+
+            <div class="chat-messages" id="chatMessages">
+                <div class="message mia">
+                    <div class="avatar mia">M</div>
+                    <div class="message-bubble">
+                        <span class="emotional-tag">[excited]</span> Hi there! I'm Mia! 
+                        <span class="emotional-tag">[curious]</span> I live in the Village of Life and I love helping kids learn about staying safe through stories and adventures! 
+                        <span class="emotional-tag">[gentle]</span> What would you like to talk about today?
+                    </div>
+                </div>
+            </div>
+
+            <div class="typing-indicator" id="typingIndicator">
+                Mia is thinking... 💭
+            </div>
+
+            <div class="chat-input-container">
+                <div class="age-selector">
+                    <label for="childAge">Age:</label>
+                    <select id="childAge">
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8" selected>8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                        <option value="11">11</option>
+                        <option value="12">12</option>
+                        <option value="13">13</option>
+                    </select>
+                </div>
+                <input 
+                    type="text" 
+                    id="messageInput" 
+                    placeholder="Type your message to Mia..."
+                    maxlength="500"
+                    disabled
+                >
+                <button id="sendButton" onclick="sendMessage()" disabled>Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        let WEBHOOK_URL = '';
+        let sessionId = 'web_session_' + Date.now();
+        let userId = 'web_user_' + Math.random().toString(36).substr(2, 9);
+        let conversationHistory = [];
+
+        // Show webhook configuration
+        function showWebhookConfig() {
+            document.getElementById('setupInstructions').style.display = 'none';
+            document.getElementById('webhookConfig').style.display = 'block';
+            
+            // Pre-fill with localhost URL for local testing
+            document.getElementById('webhookUrlInput').value = 'http://localhost:5678/webhook/82f19b4d-3c65-457f-9362-4a7b0b5080bc';
+        }
+
+        // Test webhook connection
+        async function testConnection() {
+            const urlInput = document.getElementById('webhookUrlInput');
+            const testDiv = document.getElementById('connectionTest');
+            const testUrl = urlInput.value.trim();
+            
+            if (!testUrl) {
+                showTestResult('error', 'Please enter a webhook URL');
+                return;
+            }
+
+            testDiv.style.display = 'block';
+            showTestResult('info', 'Testing connection...');
+
+            try {
+                const response = await fetch(testUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_message: 'test',
+                        user_id: 'test',
+                        session_id: 'test',
+                        child_age: 8
+                    })
+                });
+
+                if (response.ok) {
+                    WEBHOOK_URL = testUrl;
+                    showTestResult('success', '✅ Connection successful! You can now start chatting.');
+                } else {
+                    showTestResult('error', `❌ Connection failed: HTTP ${response.status}`);
+                }
+            } catch (error) {
+                if (error.name === 'TypeError' && error.message.includes('CORS')) {
+                    showTestResult('error', '❌ CORS Error: Your n8n instance needs to be publicly accessible. Use ngrok or deploy to cloud.');
+                } else {
+                    showTestResult('error', `❌ Connection failed: ${error.message}`);
+                }
+            }
+        }
+
+        function showTestResult(type, message) {
+            const testDiv = document.getElementById('connectionTest');
+            testDiv.className = type === 'success' ? 'connection-status success' : 
+                              type === 'error' ? 'connection-status error' : 'connection-status';
+            testDiv.textContent = message;
+        }
+
+        // Start chat interface
+        function startChat() {
+            const urlInput = document.getElementById('webhookUrlInput');
+            WEBHOOK_URL = urlInput.value.trim();
+            
+            if (!WEBHOOK_URL) {
+                alert('Please enter a webhook URL first');
+                return;
+            }
+
+            // Hide setup and show chat
+            document.getElementById('webhookConfig').style.display = 'none';
+            document.getElementById('chatContainer').style.display = 'flex';
+            
+            // Enable inputs
+            document.getElementById('messageInput').disabled = false;
+            document.getElementById('sendButton').disabled = false;
+            document.getElementById('messageInput').focus();
+            
+            // Update connection status
+            updateConnectionStatus('success', `🌐 Connected to: ${WEBHOOK_URL}`);
+        }
+
+        // Update connection status
+        function updateConnectionStatus(type, message) {
+            const statusDiv = document.getElementById('connectionStatus');
+            statusDiv.className = `connection-status ${type}`;
+            statusDiv.textContent = message;
+        }
+
+        // Format emotional tags in text
+        function formatEmotionalTags(text) {
+            return text.replace(/\[([^\]]+)\]/g, '<span class="emotional-tag">[$1]</span>');
+        }
+
+        // Add message to chat
+        function addMessage(sender, message, isError = false) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            if (sender === 'mia') {
+                messageDiv.innerHTML = `
+                    <div class="avatar mia">M</div>
+                    <div class="message-bubble ${isError ? 'error-message' : ''}">${formatEmotionalTags(message)}</div>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <div class="message-bubble">${message}</div>
+                    <div class="avatar user">👶</div>
+                `;
+            }
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Show typing indicator
+        function showTyping(show) {
+            const typingIndicator = document.getElementById('typingIndicator');
+            typingIndicator.style.display = show ? 'block' : 'none';
+            if (show) {
+                document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
+            }
+        }
+
+        // Send message to Mia
+        async function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const sendButton = document.getElementById('sendButton');
+            const childAge = parseInt(document.getElementById('childAge').value);
+            const message = messageInput.value.trim();
+            
+            if (!message) return;
+
+            // Disable input while processing
+            messageInput.disabled = true;
+            sendButton.disabled = true;
+            
+            // Add user message to chat
+            addMessage('user', message);
+            
+            // Add to conversation history
+            conversationHistory.push({
+                role: 'user',
+                content: message
+            });
+
+            // Clear input
+            messageInput.value = '';
+            
+            // Show typing indicator
+            showTyping(true);
+
+            try {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_message: message,
+                        user_id: userId,
+                        session_id: sessionId,
+                        child_age: childAge,
+                        conversation_history: conversationHistory.slice(-6)
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                // Hide typing indicator
+                showTyping(false);
+                
+                // Add Mia's response
+                addMessage('mia', data.response);
+                
+                // Add to conversation history
+                conversationHistory.push({
+                    role: 'assistant',
+                    content: data.response
+                });
+
+                // Show safety monitoring if enhanced
+                if (data.safety_monitoring === 'enhanced') {
+                    const statusDiv = document.createElement('div');
+                    statusDiv.className = 'status-indicator';
+                    statusDiv.innerHTML = '🛡️ Enhanced safety monitoring active for your wellbeing';
+                    document.getElementById('chatMessages').appendChild(statusDiv);
+                }
+
+                // Update connection status
+                updateConnectionStatus('success', `🌐 Connected • Tier: ${data.interaction_tier || 'N/A'} • Context: ${data.context_chunks_used || 0} chunks`);
+
+            } catch (error) {
+                console.error('Error:', error);
+                showTyping(false);
+                
+                // Show error message
+                if (error.message.includes('CORS')) {
+                    addMessage('mia', '[gentle] I\'m having trouble connecting right now. [worried] This might be because the server needs to be publicly accessible. Please check the setup instructions!', true);
+                    updateConnectionStatus('error', '❌ CORS Error - Check setup instructions');
+                } else {
+                    addMessage('mia', '[gentle] Oh no! I seem to be having trouble connecting right now. [worried] Could you try again in a moment?', true);
+                    updateConnectionStatus('error', `❌ Connection Error: ${error.message}`);
+                }
+            } finally {
+                // Re-enable input
+                messageInput.disabled = false;
+                sendButton.disabled = false;
+                messageInput.focus();
+            }
+        }
+
+        // Handle Enter key
+        document.addEventListener('DOMContentLoaded', function() {
+            const messageInput = document.getElementById('messageInput');
+            if (messageInput) {
+                messageInput.addEventListener('keypress', function(event) {
+                    if (event.key === 'Enter' && !event.shiftKey && !this.disabled) {
+                        event.preventDefault();
+                        sendMessage();
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
